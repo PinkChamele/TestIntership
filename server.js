@@ -10,6 +10,7 @@ import fs from 'fs';
 import { resolve } from "path";
 app.set('view engine', 'ejs');
 app.use(express.static("gifs"))
+app.use('/static', express.static('public'));
 
 function sendQuery(query) {
     return new Promise(
@@ -38,7 +39,7 @@ async function sortGifs(gifs) {
 function saveFileAsGif(url, fileName) {
     return new Promise((resolve, reject) => {
         const file = fs.createWriteStream(`./gifs/${fileName.replace(/\s/g, '')}.gif`);
-        const request = https.get(url, function (response) {
+        const request = https.get(url, function(response) {
             response.pipe(file);
             resolve();
         });
@@ -80,27 +81,25 @@ async function saveGifs(gifs) {
 */
 
 app.get("/", (req, res) => {
-    res.render('pages/index');
+    res.render('index');
 });
 
-app.get("/search", async (req, res, next) => {
+app.get("/search", async(req, res, next) => {
     try {
         const gifs = await sortGifs(await sendQuery(req.query.q));
         await saveGifs(gifs);
 
         //res.send(gifs);
-    }
-    catch (e) {
+    } catch (e) {
         next(e);
     }
 });
 
-app.get("/display", async (req, res, next) => {
+app.get("/display", async(req, res, next) => {
     try {
         res.render('render', { gifs: await readLoadedGifs() });
         //res.send(gifs);
-    }
-    catch (e) {
+    } catch (e) {
         next(e);
     }
 });
